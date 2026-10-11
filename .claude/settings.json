@@ -1,0 +1,14 @@
+{
+  "extraKnownMarketplaces": {
+    "nextwork": {
+      "source": {
+        "source": "github",
+        "repo": "nextwork-projects/ai-video-editor"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "ai-editor@nextwork": true,
+    "creator-teardown@nextwork": true
+  }
+}
