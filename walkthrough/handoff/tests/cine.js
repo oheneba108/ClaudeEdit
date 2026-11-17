@@ -26,7 +26,7 @@ const log = (...a) => console.log(TAG, ROOM, ...a);
   await page.screenshot({ path: `${OUT}/${TAG}-${ROOM}-2-pano.png` });
   const v0 = await page.evaluate(() => __app.view);
   // drag to look around (mouse or touch both arrive as pointer events)
-  await page.mouse.move(600, 400); await page.mouse.down(); await page.mouse.move(300, 360, { steps: 6 }); await page.mouse.up();
+  const vw = +W || 1344, vh = +H || 768; await page.mouse.move(vw * 0.6, vh * 0.4); await page.mouse.down(); await page.mouse.move(vw * 0.25, vh * 0.36, { steps: 6 }); await page.mouse.up();
   await page.waitForTimeout(3000);
   const v1 = await page.evaluate(() => __app.view);
   log('drag yaw', v0.yaw.toFixed(3), '->', v1.yaw.toFixed(3), 'pitch', v1.pitch.toFixed(3));

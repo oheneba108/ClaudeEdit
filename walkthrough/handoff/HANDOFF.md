@@ -205,7 +205,7 @@ A single still can't pan, so photoreal mode is now **a cylindrical 360° panoram
 **Known limits:**
 - Software rendering here is slow: about 1 fps for 3D, so tests use long timeouts. A real GPU is fine.
 - The 4032-px pano is a little soft on large desktop screens. 6336-px masters are available from fal if needed, but they are wider than some phones' maximum texture size of 4096.
-- Not yet tested on a real phone.
+- End-to-end tested (`tests/cine.js`): desktop kitchen and phone (390 × 844) bedroom 2. Video → pano → drag → Walk around (heading kept) → Photoreal 360° → Plan all pass, the Charcoal gate works and there are no page errors. Screens are in `checks/e2e-*.jpg`. Published as **artifact version 3** at the same link. Not yet tested on a real phone.
 
 ---
 
