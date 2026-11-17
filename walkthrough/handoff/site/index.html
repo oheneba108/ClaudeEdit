@@ -71,21 +71,23 @@
   .modal p{font-size:11px;color:#bdb6a9;max-width:520px;text-align:center;line-height:1.5}
   #refBig img{max-width:92vw;max-height:76vh;display:block}
   #fade{position:fixed;inset:0;background:#161a18;z-index:10;transition:opacity 1.2s;pointer-events:none}
-  /* photoreal fly-in overlay: video, then AI still, then crossfade to the live 3D view */
-  #cine{position:fixed;inset:0;z-index:8;display:none;opacity:1;transition:opacity .6s;background:#161a18;overflow:hidden}
+  /* photoreal mode: AI fly-in video, then a photoreal 360 panorama you can drag around, crossfading to/from the live 3D view */
+  #cine{position:fixed;inset:0;z-index:8;display:none;opacity:1;transition:opacity .45s;background:#161a18;overflow:hidden}
   #cine.show{display:block}#cine.out{opacity:0;pointer-events:none}
-  #cineBg{position:absolute;inset:-40px;width:calc(100% + 80px);height:calc(100% + 80px);object-fit:cover;filter:blur(24px) brightness(.8)}
+  #cineBg{position:absolute;inset:-40px;width:calc(100% + 80px);height:calc(100% + 80px);object-fit:cover;filter:blur(24px) brightness(.75)}
   #cineBox{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
-  #cineBox video,#cineBox img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;transition:opacity .35s}
-  #cineImg{opacity:0}#cine.still #cineImg{opacity:1}
-  #cineUi{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding:18px 22px;opacity:0;transition:opacity .5s;pointer-events:none}
-  #cineUi::before{content:'';position:absolute;inset:-80px 0 0 0;background:linear-gradient(transparent,rgba(14,17,15,.78));z-index:-1}
-  #cine.still #cineUi{opacity:1;pointer-events:auto}
-  #cineUi p{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#d6cfc2;max-width:360px;line-height:1.6}
-  #cineUi .row{display:flex;gap:8px}
+  #cineBox video{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
   #cineSkip{position:absolute;top:16px;right:22px}
-  #cine.still #cineSkip{display:none}
-  @media (max-width:760px){#cineUi{flex-direction:column;align-items:stretch;padding:14px 12px}#cineSkip{top:12px;right:10px}}
+  #snap{position:fixed;inset:0;width:100%;height:100%;z-index:7;opacity:0;pointer-events:none;transition:opacity .6s;display:none}
+  #panoUi{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding:18px 22px;z-index:6;opacity:0;transition:opacity .5s;pointer-events:none}
+  #panoUi::before{content:'';position:absolute;inset:-80px 0 0 0;background:linear-gradient(transparent,rgba(14,17,15,.72));z-index:-1}
+  body.pano #panoUi{opacity:1;pointer-events:auto}
+  body.pano #walkui,body.pano #joy,body.pano #btnBack{display:none!important}
+  #panoUi h2{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:30px;margin:2px 0 6px}
+  #panoUi p{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#d6cfc2;max-width:380px;line-height:1.6}
+  #panoUi .row{display:flex;gap:8px;margin:0}
+  #btnPano{display:none}
+  @media (max-width:760px){#panoUi{flex-direction:column;align-items:stretch;padding:14px 12px}#panoUi h2{font-size:24px}#cineSkip{top:12px;right:10px}}
   @media (max-width:760px){
     #panel{left:10px;right:10px;width:auto;top:auto;bottom:10px;max-height:46vh;padding:16px}
     #panel.compact .stats,#panel.compact .blurb,#panel.compact .opt,#panel.compact .seg,#panel.compact .note,#panel.compact ul.rooms{display:none}
@@ -114,13 +116,14 @@
 <div id="hint"></div>
 <div id="cine">
   <img id="cineBg" alt="">
-  <div id="cineBox"><video id="cineVid" muted playsinline preload="auto"></video><img id="cineImg" alt="Photoreal view of the room"></div>
+  <div id="cineBox"><video id="cineVid" muted playsinline preload="auto"></video></div>
   <button class="btn" id="cineSkip">Skip</button>
-  <div id="cineUi">
-    <div><div class="eyebrow" id="cineEyebrow"></div><h2 id="cineName" style="font-family:'Cormorant Garamond',serif;font-weight:500;font-size:30px;margin:2px 0 6px"></h2>
-    <p>Photoreal preview, AI-rendered from the 3D model at this exact viewpoint. Finishes are indicative.</p></div>
-    <div class="row"><button class="btn" id="cineBack">← Plan</button><button class="btn light" id="cineWalk">Walk around</button></div>
-  </div>
+</div>
+<img id="snap" alt="">
+<div id="panoUi">
+  <div><div class="eyebrow" id="panoEyebrow"></div><h2 id="panoName"></h2>
+  <p>Photoreal 360° · drag to look around. AI-rendered from the 3D model at this spot; finishes are indicative.</p></div>
+  <div class="row"><button class="btn" id="panoBack">← Plan</button><button class="btn light" id="panoWalk">Walk around</button></div>
 </div>
 <aside id="panel" class="compact">
   <div class="eyebrow"><span id="pEyebrow">Ground floor</span> <span id="more" class="moreBtn">Details ▾</span></div>
@@ -135,7 +138,7 @@
 </aside>
 <div id="walkui">
   <div id="roomtitle"><div class="eyebrow" id="rtEyebrow"></div><h2 id="rtName"></h2><p id="rtDims"></p></div>
-  <div class="right"><div id="ref"><img alt=""><div>Reference render · tap to compare</div></div><div class="chips" id="chips"></div></div>
+  <div class="right"><button class="btn light" id="btnPano">Photoreal 360°</button><div id="ref"><img alt=""><div>Reference render · tap to compare</div></div><div class="chips" id="chips"></div></div>
 </div>
 <div id="joy"><b></b></div>
 <div class="modal" id="plan2d">
@@ -700,50 +703,138 @@ function enterRoom(r){
     setCeilings(true); setInterior(true);
     const e = new THREE.Euler().setFromQuaternion(q,'YXZ'); yaw = e.y; pitch = e.x;
     Object.assign(P, { x:r.eye[0], z:r.eye[1], level:r.L, y:FL[r.L] }); arrive.x = P.x; arrive.z = P.z;
+    if (cine.open && cine.room === r){ mode = 'walk'; cine.landed = true; cineMaybeReveal(); return; }   // the fly-in video is still covering the screen
     mode = 'walk'; $('#walkui').classList.add('show'); if (isTouch) $('#joy').style.display='block';
-    if (!cine.open) walkHint();
+    walkHint();
   });
   setTimeout(()=>{ if (mode==='fly'){ setCeilings(true); setInterior(true); } }, dur*1000*0.8);
-  if (fromDoll && CINE[r.id] && (!CINE[r.id].cab || CINE[r.id].cab === cabChoice)) openCine(r);
+  if (fromDoll && panoOK(r) && PANO[r.id].video) openCine(r);
 }
 const walkHint = ()=> hint(isTouch ? 'Drag to look · joystick to walk · tap the floor to move there' : 'Drag to look · WASD / arrows to walk · click the floor to move there · take the stairs between floors', 4500);
 
-/* --- photoreal fly-in: AI video (dollhouse -> room), hold on the AI still, crossfade to the live 3D view.
-   The still was rendered from the walk camera at FOV 60 and 1344x768 (aspect 1.75); size it to match the live camera. */
-const CINE = { kitchen:{ video:'assets/fly-kitchen.mp4', still:'assets/kitchen-photo.jpg', fov:60, aspect:1344/768, rate:1.5, cab:'sage' } };
-const cine = { open:false, room:null };
+/* --- photoreal mode.
+   PANO: per room, a cylindrical 360 panorama (21:9, centred on the room's start view, level horizon) shot from the room's eye
+   by panoShot() and restyled photoreal, plus an optional AI fly-in video from the dollhouse that ends on the pano's start view
+   (rendered at FOV 60, 1344x768). The viewer reprojects the pano for the live camera, so drag-to-look and the crossfade to
+   the 3D walk view line up at any heading. */
+const PANO = {};   // id -> { pano, video?, cab? }; cab = only valid with that cabinet option (the photo shows it)
+for (const id of ['living','dining','kitchen','wc','hall','primary','bath','bed2','landing'])
+  PANO[id] = { pano:`assets/pano-${id}.jpg`, video:`assets/fly-${id}.mp4`, cab: ['living','dining','kitchen'].includes(id) ? 'sage' : null };
+const VID = { fov:60, aspect:1344/768, rate:1.5 };
+const panoOK = r => !!(r && PANO[r.id] && (!PANO[r.id].cab || PANO[r.id].cab === cabChoice));
+const roomView = r => { const eye = new THREE.Vector3(r.eye[0], FL[r.L]+1.6, r.eye[1]), look = new THREE.Vector3(r.look[0], FL[r.L]+1.25, r.look[1]);
+  const e = new THREE.Euler().setFromQuaternion(quatLooking(eye, look),'YXZ'); return { yaw:e.y, pitch:e.x }; };
+const pMat = new THREE.ShaderMaterial({
+  uniforms:{ tex:{value:null}, projInv:{value:new THREE.Matrix4()}, camW:{value:new THREE.Matrix4()}, yaw0:{value:0}, tanMax:{value:1} },
+  vertexShader:'varying vec2 vNdc; void main(){ vNdc = position.xy; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+  fragmentShader:`uniform sampler2D tex; uniform mat4 projInv, camW; uniform float yaw0, tanMax; varying vec2 vNdc;
+    void main(){ vec4 q = projInv * vec4(vNdc, 1.0, 1.0); vec3 d = normalize((camW * vec4(q.xyz/q.w, 0.0)).xyz);
+      float a = atan(-d.x, -d.z); float u = fract(0.5 - (a - yaw0) / 6.28318530718);
+      float v = 0.5 + (d.y / length(d.xz)) / (2.0 * tanMax);
+      gl_FragColor = texture2D(tex, vec2(u, clamp(v, 0.001, 0.999))); }`,
+  depthTest:false, depthWrite:false });
+const pScene = new THREE.Scene(); { const m = new THREE.Mesh(new THREE.PlaneGeometry(2,2), pMat); m.frustumCulled = false; pScene.add(m); }
+const panoTex = {};
+function loadPano(id){
+  return panoTex[id] ||= new Promise((res, rej)=> new THREE.TextureLoader().load(PANO[id].pano, t=>{
+    t.colorSpace = THREE.NoColorSpace; t.generateMipmaps = false; t.minFilter = THREE.LinearFilter; t.wrapS = THREE.RepeatWrapping; res(t); }, undefined, rej));
+}
+const pano = { room:null, ready:false };
+const panoPitchMax = ()=> Math.atan(pMat.uniforms.tanMax.value) - THREE.MathUtils.degToRad(camera.fov/2) - 0.01;
+function panoStep(){
+  pitch = THREE.MathUtils.clamp(pitch, -panoPitchMax(), panoPitchMax());
+  camera.position.set(0,0,0); camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ')); camera.updateMatrixWorld();
+  pMat.uniforms.projInv.value.copy(camera.projectionMatrixInverse); pMat.uniforms.camW.value.copy(camera.matrixWorld);
+}
+// freeze the current frame into a full-screen image, run the switch underneath, then fade the image away
+async function crossfade(swap, ms=600){
+  const sn = $('#snap'); sn.style.transition = 'none'; sn.src = renderer.domElement.toDataURL('image/jpeg', 0.9);
+  try { await sn.decode(); } catch(e){}
+  sn.style.display = 'block'; sn.style.opacity = 1;
+  await swap();
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  sn.style.transition = `opacity ${ms}ms`; sn.style.opacity = 0;
+  setTimeout(()=>{ sn.style.display = 'none'; }, ms+50);
+}
+function setPanoState(r, tex){
+  const v = roomView(r);
+  pMat.uniforms.tex.value = tex; pMat.uniforms.tanMax.value = Math.PI * tex.image.height / tex.image.width; pMat.uniforms.yaw0.value = v.yaw;
+  Object.assign(P, { x:r.eye[0], z:r.eye[1], level:r.L, y:FL[r.L] }); arrive.x = P.x; arrive.z = P.z; moveTarget = null;
+  pano.room = r; mode = 'pano'; document.body.classList.add('pano'); $('#walkui').classList.remove('show'); $('#joy').style.display='none';
+  $('#panoEyebrow').textContent = r.L ? 'First floor' : 'Ground floor'; $('#panoName').textContent = r.name;
+}
+// from walk mode: the photoreal button
+async function openPano(r, startView){
+  if (!panoOK(r) || mode !== 'walk') return;
+  const tex = await loadPano(r.id);
+  await crossfade(async ()=>{ setPanoState(r, tex); if (startView){ const v = roomView(r); yaw = v.yaw; pitch = v.pitch; } panoStep(); renderer.render(pScene, camera); });
+  hint(isTouch ? 'Drag to look around' : 'Drag to look around · Walk around to move', 3500);
+}
+async function leavePano(then){
+  if (mode !== 'pano') return;
+  const r = pano.room;
+  await crossfade(async ()=>{
+    document.body.classList.remove('pano'); pano.room = null; mode = 'walk';
+    $('#walkui').classList.add('show'); if (isTouch) $('#joy').style.display='block';
+    walkStep(0); renderer.render(scene, camera);
+  });
+  if (then) then(); else walkHint();
+}
+$('#panoWalk').onclick = ()=> leavePano();
+$('#panoBack').onclick = ()=> leavePano(()=> toDollhouse());
+$('#btnPano').onclick = ()=>{ const r = PLAN.rooms.find(q=>q === current); if (r) openPano(r, Math.hypot(P.x-r.eye[0], P.z-r.eye[1]) > 0.3); };
+
+// fly-in video from the dollhouse; the 3D camera flies to the eye underneath, then the pano is revealed behind the video
+const cine = { open:false, room:null, landed:false, ended:false };
 function sizeCine(){
-  const c = cine.room && CINE[cine.room.id]; if (!c) return;
-  const h = innerHeight * Math.tan(THREE.MathUtils.degToRad(c.fov/2)) / Math.tan(THREE.MathUtils.degToRad((portrait()?70:60)/2));
-  const b = $('#cineBox'); b.style.height = h+'px'; b.style.width = (h*c.aspect)+'px';
+  const h = innerHeight * Math.tan(THREE.MathUtils.degToRad(VID.fov/2)) / Math.tan(THREE.MathUtils.degToRad((portrait()?70:60)/2));
+  const b = $('#cineBox'); b.style.height = h+'px'; b.style.width = (h*VID.aspect)+'px';
 }
 function openCine(r){
-  const c = CINE[r.id], el = $('#cine'), v = $('#cineVid');
-  cine.open = true; cine.room = r; sizeCine();
-  $('#cineImg').src = c.still; $('#cineBg').src = c.still;
-  $('#cineEyebrow').textContent = r.L ? 'First floor' : 'Ground floor'; $('#cineName').textContent = r.name;
-  el.classList.remove('out','still'); el.classList.add('show');
-  const toStill = ()=>{ if (cine.open) el.classList.add('still'); };
-  v.onended = toStill; v.onerror = toStill;
-  v.src = c.video; v.playbackRate = c.rate; v.currentTime = 0;
-  const pr = v.play(); if (pr && pr.catch) pr.catch(toStill);     // autoplay blocked: go straight to the still
-  v.onloadedmetadata = ()=>{ v.playbackRate = c.rate; };
+  const c = PANO[r.id], el = $('#cine'), v = $('#cineVid');
+  Object.assign(cine, { open:true, room:r, landed:false, ended:false }); sizeCine();
+  el.classList.remove('out'); el.classList.add('show'); $('#cineBg').removeAttribute('src');
+  loadPano(r.id).catch(()=>{});
+  const end = ()=>{ cine.ended = true; cineMaybeReveal(); };
+  v.onended = end; v.onerror = end;
+  v.src = c.video; v.playbackRate = VID.rate; v.currentTime = 0;
+  v.onloadedmetadata = ()=>{ v.playbackRate = VID.rate; };
+  const pr = v.play(); if (pr && pr.catch) pr.catch(end);       // autoplay blocked: skip to the pano
 }
-function closeCine(then){
+async function cineMaybeReveal(){
+  if (!cine.open || !cine.landed || !cine.ended) return;
+  const r = cine.room; let tex; try { tex = await loadPano(r.id); } catch(e){ tex = null; }
   if (!cine.open) return; cine.open = false;
-  const el = $('#cine'), v = $('#cineVid'); v.pause();
-  for (const k in keys) keys[k] = false;
-  el.classList.add('out');
-  setTimeout(()=>{ el.classList.remove('show','out','still'); v.removeAttribute('src'); v.load(); }, 650);
-  if (then) then();
+  if (tex){ setPanoState(r, tex); const v = roomView(r); yaw = v.yaw; pitch = v.pitch; panoStep(); }
+  else { $('#walkui').classList.add('show'); if (isTouch) $('#joy').style.display='block'; }
+  const el = $('#cine'), vid = $('#cineVid'); el.classList.add('out');
+  setTimeout(()=>{ el.classList.remove('show','out'); vid.pause(); vid.removeAttribute('src'); vid.load(); }, 500);
+  hint(tex ? (isTouch ? 'Drag to look around' : 'Drag to look around · Walk around to move') : '', tex ? 3500 : 1);
 }
-$('#cineWalk').onclick = ()=> closeCine(()=>{ if (mode==='walk') walkHint(); else { const w = setInterval(()=>{ if (mode==='walk'){ clearInterval(w); walkHint(); } }, 100); } });
-$('#cineSkip').onclick = ()=> $('#cine').classList.add('still');
-$('#cineBack').onclick = ()=> closeCine(()=>{ const w = setInterval(()=>{ if (!tween){ clearInterval(w); toDollhouse(); } }, 50); });
+$('#cineSkip').onclick = ()=>{ cine.ended = true; cineMaybeReveal(); };
 addEventListener('resize', sizeCine);
+
+// test / authoring hook: shoot the room's cylindrical 3D panorama (call while standing in walk mode).
+// N narrow perspective slices (5 deg each) are stitched; vertical scale per slice = cylinder radius, so it is cylindrical to < 1 px.
+function panoShot(r, W=4032){
+  const N = 72, sw = W/N, H = Math.round(W*9/21), R = W/(2*Math.PI), tanMax = (H/2)/R, v = roomView(r);
+  const pr = renderer.getPixelRatio(); renderer.setPixelRatio(1); renderer.setSize(sw, H, false);   // synchronous: the render loop can't interleave
+  const cam = new THREE.PerspectiveCamera(2*THREE.MathUtils.radToDeg(Math.atan(tanMax)), sw/H, 0.05, 200);
+  cam.position.set(r.eye[0], FL[r.L]+1.6, r.eye[1]);
+  const out = document.createElement('canvas'); out.width = W; out.height = H; const g = out.getContext('2d');
+  for (let i=0;i<N;i++){ cam.quaternion.setFromEuler(new THREE.Euler(0, v.yaw - ((i+0.5)/N - 0.5)*2*Math.PI, 0, 'YXZ')); cam.updateMatrixWorld();
+    renderer.render(scene, cam); g.drawImage(renderer.domElement, i*sw, 0); }
+  renderer.setPixelRatio(pr); renderer.setSize(innerWidth, innerHeight);
+  return out.toDataURL('image/png');
+}
+async function panoNow(id, usePath){   // enter the pano at the start view with no video (tests and frame capture)
+  const r = PLAN.rooms.find(q=>q.id===id); if (usePath) { PANO[id] = Object.assign(PANO[id]||{}, { pano:usePath }); delete panoTex[id]; }
+  const tex = await loadPano(id); setPanoState(r, tex); const v = roomView(r); yaw = v.yaw; pitch = v.pitch; panoStep(); return true;
+}
 function setTitle(r){
   $('#rtEyebrow').textContent = r.L ? 'First floor' : 'Ground floor'; $('#rtName').textContent = r.name; $('#rtDims').textContent = r.dims;
   PLAN.rooms.forEach(x=>x.chip.classList.toggle('on', x===r));
+  $('#btnPano').style.display = panoOK(r) ? '' : 'none';
   if (r.ref){ $('#ref img').src = REFS[r.ref]; $('#ref').style.display='block'; } else $('#ref').style.display='none';
 }
 function toDollhouse(){
@@ -774,6 +865,7 @@ addEventListener('pointermove', e=>{
   }
   if (!drag || drag.id!==e.pointerId) return;
   const dx = e.clientX-drag.x, dy = e.clientY-drag.y; drag.moved += Math.abs(dx)+Math.abs(dy); drag.x=e.clientX; drag.y=e.clientY;
+  if (mode==='pano'){ yaw += dx*0.0042; pitch = THREE.MathUtils.clamp(pitch + dy*0.0036, -panoPitchMax(), panoPitchMax()); }
   if (mode==='walk'){ yaw += dx*0.0042; pitch = THREE.MathUtils.clamp(pitch + dy*0.0036, -1.1, 1.0); moveTarget = null; }
 });
 addEventListener('pointerup', e=>{
@@ -872,6 +964,7 @@ function loop(){
   if (tween){ tween.t += dt/tween.dur; const k = Math.min(1,tween.t); tween.step(k); if (k>=1){ const d=tween.done; tween=null; d&&d(); } }
   if (mode==='doll') controls.update();
   if (mode==='walk') walkStep(dt);
+  if (mode==='pano') panoStep();
   // first floor lifts away when viewing the ground floor
   g1Lift += (g1LiftTarget - g1Lift) * Math.min(1, dt*5);
   if (Math.abs(g1Lift-g1LiftTarget) < 0.01) g1Lift = g1LiftTarget;
@@ -879,7 +972,7 @@ function loop(){
   $('#hot').style.display = mode==='doll' ? '' : 'none';
   if (mode==='doll') placeHotspots();
   for (const r of PLAN.rooms){ const m=hl[r.id].material; m.opacity += ((hover===r.id && mode==='doll' ? .32 : 0) - m.opacity)*Math.min(1,dt*10); }
-  renderer.render(scene, camera);
+  renderer.render(mode==='pano' ? pScene : scene, camera);
   requestAnimationFrame(loop);
 }
 loop();
@@ -892,7 +985,7 @@ function ortho(L){
   oc.up.set(0,0,-1); oc.position.set(CENTER.x, FL[L]+20, CENTER.z); oc.lookAt(CENTER.x, FL[L], CENTER.z);
   renderer.setPixelRatio(1); renderer.setSize(innerWidth, innerHeight); renderer.render(scene, oc);
 }
-window.__app = { sim:(sec)=>{ for(let t=0;t<sec;t+=1/60) walkStep(1/60); return {x:P.x,z:P.z,l:P.level,y:+P.y.toFixed(2)}; }, teleport:(x,z,l,yw)=>{Object.assign(P,{x,z,level:l,y:l==='s'?0:FL[l]}); yaw=yw; pitch=0;}, enterRoom, toDollhouse, setFloor, ortho, PLAN, get mode(){return mode;}, get cine(){return {open:cine.open, still:$('#cine').classList.contains('still')};}, camera, get P(){return P;}, keys, walk:(code,on)=>{keys[code]=on;} };
+window.__app = { sim:(sec)=>{ for(let t=0;t<sec;t+=1/60) walkStep(1/60); return {x:P.x,z:P.z,l:P.level,y:+P.y.toFixed(2)}; }, teleport:(x,z,l,yw)=>{Object.assign(P,{x,z,level:l,y:l==='s'?0:FL[l]}); yaw=yw; pitch=0;}, enterRoom, toDollhouse, setFloor, ortho, PLAN, get mode(){return mode;}, get cine(){return {open:cine.open};}, get pano(){return pano.room ? pano.room.id : null;}, panoShot:(id,W)=>panoShot(PLAN.rooms.find(q=>q.id===id),W), panoNow, PANO, leavePano, openPano:(id,s)=>openPano(PLAN.rooms.find(q=>q.id===id),s), get view(){return {yaw,pitch,fov:camera.fov};}, set view(v){yaw=v.yaw;pitch=v.pitch;}, camera, get P(){return P;}, keys, walk:(code,on)=>{keys[code]=on;} };
 </script>
 </body>
 </html>
