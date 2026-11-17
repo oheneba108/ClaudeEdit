@@ -35,6 +35,17 @@ const enter = async (page, id) => { await page.evaluate(id => __app.enterRoom(__
       console.log('shot', id, ((Date.now() - t0) / 1000).toFixed(1) + 's');
     }
     await b.close();
+  } else if (cmd === 'endframes') {   // endframes <outDir> id=panoPath ...  (no walk-in needed: pano state is set directly, FOV 60)
+    const { b, page } = await open();
+    await page.addStyleTag({ content: HIDE });
+    for (const pair of rest) {
+      const [id, p] = pair.split('=');
+      const url = 'data:image/jpeg;base64,' + fs.readFileSync(p).toString('base64');
+      await page.evaluate(([id, u]) => { __app.camera.fov = 60; __app.camera.clearViewOffset(); __app.camera.updateProjectionMatrix(); return __app.panoNow(id, u); }, [id, url]);
+      await page.waitForTimeout(5000);
+      await page.screenshot({ path: `${OUT}/end-${id}.png` }); console.log('end', id);
+    }
+    await b.close();
   } else if (cmd === 'check' || cmd === 'endframe') {
     const [id, panoPath] = rest;
     const { b, page } = await open();

@@ -179,6 +179,36 @@ Use the shortest duration available; the page can trim or speed it to roughly 1.
 
 ---
 
+## 6c. Photoreal 360° panoramas for every room (drag to look around)
+
+A single still can't pan, so photoreal mode is now **a cylindrical 360° panorama per room**, centred on the room's start view with a level horizon. You can drag to look around. **Walk around** crossfades into the 3D walk view at the current heading, and the **Photoreal 360°** button in walk mode goes back.
+
+**Pipeline, per room** (all scripts are in `tests/`):
+1. `node pano3d.js shoot <out> <ids…>`: renders the 3D panorama, 4032 × 1728 (21:9), with `__app.panoShot()`. It stitches 72 slices of 5° each, giving a cylinder accurate to under 1 px. It also captures `doll-g.png` and `doll-f.png`, the dollhouse start frames.
+2. Restyle with `google/nano-banana-2.1/edit`, 4K, aspect 21:9. Inputs: [3D pano, client reference render(s)]. The prompt starts with "STRICT GEOMETRY … must overlay it exactly, edge for edge", lists what to keep, says the left and right edges must join, and says "Add nothing".
+3. `panoproc.sh <url> <id> <work>`: fits the result to 4032 × 1728, writes the red 3D-edges overlay and the seam strip, and runs a drift check. **Critic gate:** reject if anything is added, moved or resized, then regenerate with the fault named.
+4. Seam repair if needed: `panoroll.py roll` puts the seam in the centre. Edit that with [rolled photo, rolled 3D template] and the prompt "repair only a narrow centre band". `panoroll.py merge` then blends back only a feathered 16% band, so no other pixel changes.
+5. `node pano3d.js endframes <out> id=assets/pano-id.jpg …`: renders the pano's start view at FOV 60, 1344 × 768. That is the fly-in's last frame.
+6. Fly-in video: `alibaba/wan-3.0-prime/image-to-video`, 3 s, 1080p, no audio. Start = `doll-g` or `doll-f`, end = that end frame. `vidproc.sh` encodes it to 720p H.264, makes a 6-frame strip, and diffs the last frame against the end frame.
+
+**Viewer:** a full-screen shader reprojects the pano for the live camera, using its projection inverse and rotation; `pScene`/`pMat` in `index.html`. Checked against the un-restyled 3D pano at four headings: mean difference under 2/255, so the viewer, the 3D view and the crossfade register exactly. Pitch is clamped to the pano's vertical coverage, about ±53° minus half the FOV. Kitchen, dining and living show photoreal only with **Sage** cabinets, because the photos show sage.
+
+**Results (17 Nov):** all 9 rooms passed.
+- Kitchen: the pilot needed a seam repair (the model had invented a hallway opening).
+- Living: needed round 2. Round 1 added a window, shifted the sofa and table, and turned the tub chair into a wingback.
+- Everything else passed in round 1.
+- Small additions accepted: a few recessed downlights, two small plants beside the living-room sofa, and a framed picture that flashes up mid-move in the hall fly-in.
+- Videos: the kitchen fly-in shows a fridge for a moment mid-move.
+
+**Spend this session:** 13 4K edit images (9 rooms, 1 kitchen pilot seam fix, 1 living retry, plus the 2 earlier stills) and 10 videos at about $0.14 each. The edit model's per-image price wasn't exposed by the pricing API; Nano Banana-class 4K is roughly $0.30.
+
+**Known limits:**
+- Software rendering here is slow: about 1 fps for 3D, so tests use long timeouts. A real GPU is fine.
+- The 4032-px pano is a little soft on large desktop screens. 6336-px masters are available from fal if needed, but they are wider than some phones' maximum texture size of 4096.
+- Not yet tested on a real phone.
+
+---
+
 ## 7. Open items and next steps
 
 1. **Run the kitchen AI loop** (section 6), judge it, and if it works, roll it out to every room.
