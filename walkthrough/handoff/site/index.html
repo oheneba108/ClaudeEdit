@@ -75,6 +75,7 @@
   #cine{position:fixed;inset:0;z-index:8;display:none;opacity:1;transition:opacity .45s;background:#161a18;overflow:hidden}
   #cine.show{display:block}#cine.out{opacity:0;pointer-events:none}
   #cineBg{position:absolute;inset:-40px;width:calc(100% + 80px);height:calc(100% + 80px);object-fit:cover;filter:blur(24px) brightness(.75)}
+  #cine.pre #cineBg{inset:0;width:100%;height:100%;filter:none}
   #cineBox{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
   #cineBox video{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
   #cineSkip{position:absolute;top:16px;right:22px}
@@ -793,7 +794,9 @@ function sizeCine(){
 function openCine(r){
   const c = PANO[r.id], el = $('#cine'), v = $('#cineVid');
   Object.assign(cine, { open:true, room:r, landed:false, ended:false }); sizeCine();
-  el.classList.remove('out'); el.classList.add('show'); $('#cineBg').removeAttribute('src');
+  $('#cineBg').src = renderer.domElement.toDataURL('image/jpeg', 0.85);   // the dollhouse as it is now, until the video's first frame
+  el.classList.remove('out'); el.classList.add('show','pre');
+  v.onplaying = ()=> el.classList.remove('pre');
   loadPano(r.id).catch(()=>{});
   const end = ()=>{ cine.ended = true; cineMaybeReveal(); };
   v.onended = end; v.onerror = end;
@@ -808,7 +811,7 @@ async function cineMaybeReveal(){
   if (tex){ setPanoState(r, tex); const v = roomView(r); yaw = v.yaw; pitch = v.pitch; panoStep(); }
   else { $('#walkui').classList.add('show'); if (isTouch) $('#joy').style.display='block'; }
   const el = $('#cine'), vid = $('#cineVid'); el.classList.add('out');
-  setTimeout(()=>{ el.classList.remove('show','out'); vid.pause(); vid.removeAttribute('src'); vid.load(); }, 500);
+  setTimeout(()=>{ el.classList.remove('show','out','pre'); vid.pause(); vid.removeAttribute('src'); vid.load(); }, 500);
   hint(tex ? (isTouch ? 'Drag to look around' : 'Drag to look around · Walk around to move') : '', tex ? 3500 : 1);
 }
 $('#cineSkip').onclick = ()=>{ cine.ended = true; cineMaybeReveal(); };
@@ -834,7 +837,7 @@ async function panoNow(id, usePath){   // enter the pano at the start view with 
 function setTitle(r){
   $('#rtEyebrow').textContent = r.L ? 'First floor' : 'Ground floor'; $('#rtName').textContent = r.name; $('#rtDims').textContent = r.dims;
   PLAN.rooms.forEach(x=>x.chip.classList.toggle('on', x===r));
-  $('#btnPano').style.display = panoOK(r) ? '' : 'none';
+  $('#btnPano').style.display = panoOK(r) ? 'inline-block' : 'none';
   if (r.ref){ $('#ref img').src = REFS[r.ref]; $('#ref').style.display='block'; } else $('#ref').style.display='none';
 }
 function toDollhouse(){
