@@ -132,7 +132,7 @@ const want = p => PART === 'all' || PART === p;
   // ---------------- change something (mocked Claude)
   if (want('change')) {
     const p = await open(1280, 800);
-    await p.evaluate(() => localStorage.clear());
+    await p.evaluate(() => localStorage.clear()); await p.addStyleTag({ content: '#panel{transition:none!important}' });
     ok('without Claude: unavailable note, apply disabled', await p.evaluate(() => !document.querySelector('#chgNA').hidden && document.querySelector('#chgNA').textContent === 'Open this page in the Claude app or on claude.ai to make changes' && document.querySelector('#chgApply').disabled));
     // mock: the page sends the prompt; the test edits the MODEL JSON in it like Claude would
     await p.exposeFunction('mockClaude', async prompt => {
@@ -170,8 +170,8 @@ const want = p => PART === 'all' || PART === p;
       ['bed', 'primary', 'move the primary bed against the right-hand wall'],
       ['wall', 'kitchen', 'remove the wall between the kitchen and the hall'],
     ];
-    const views = { living: [4.6, 2.9, 0, 1.0, 1.4], dining: [3.25, 4.95, 0, 6.2, 3.6], bed2: [3.1, 8.0, 1, 0.5, 8.0], primary: [3.05, 3.0, 1, 5.6, 0.9], kitchen: [1.3, 8.2, 0, 4.6, 6.6] };
-    const look = async room => { const v = views[room]; await p.evaluate(v => { __app.teleport(v[0], v[1], v[2], Math.atan2(-(v[3] - v[0]), -(v[4] - v[1]))); __app.view = { yaw: Math.atan2(-(v[3] - v[0]), -(v[4] - v[1])), pitch: -0.12 }; __app.sim(0.02); }, v); await frames(p, 2); };
+    const views = { living: [4.6, 2.9, 0, 1.0, 1.4], dining: [3.25, 4.95, 0, 6.2, 3.6], bed2: [3.4, 6.9, 1, 1.2, 8.2, -0.42], primary: [3.05, 3.0, 1, 5.6, 0.9], kitchen: [1.3, 8.2, 0, 4.6, 6.6] };
+    const look = async room => { const v = views[room]; await p.evaluate(v => { __app.teleport(v[0], v[1], v[2], Math.atan2(-(v[3] - v[0]), -(v[4] - v[1]))); __app.view = { yaw: Math.atan2(-(v[3] - v[0]), -(v[4] - v[1])), pitch: v[5] ?? -0.12 }; __app.sim(0.02); }, v); await frames(p, 2); };
     await enter(p, 'living');
     for (const [tag, room, req] of cases) {
       await look(room); await p.waitForFunction(() => __app.bake.done); await shot(p, `chg-${tag}-before.png`);
