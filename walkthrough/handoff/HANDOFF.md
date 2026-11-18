@@ -301,7 +301,7 @@ wall paint, ceiling, floors per room, kitchen cabinets (the sage/charcoal/oak sw
 
 **Change something** (side panel; the Change button opens it in walk mode).
 - Calls Claude through the artifact `sample` capability: `claude.use('sample')`, published with `capabilities:{sample:{images:true}}`.
-- The prompt is the agreed wording plus the compact model (about 30 KB).
+- The prompt is the agreed wording plus the compact model (about 14 KB).
 - Before applying a reply, the page strips code fences, parses the JSON and takes out `changes`. It rejects the reply if any of these changed: walls, doorLeaves, rooms, stairs or levels. It also rejects unknown types and missing or non-finite numbers.
 - A new or moved item is clamped inside its room. An item that can't fit is dropped, with a note.
 - Undo history holds 30 changes. The model and its history are saved in localStorage (`house-walkthrough-model-v1`). Reset restores the original design.
