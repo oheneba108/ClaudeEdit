@@ -259,7 +259,7 @@ A single still can't pan, so photoreal mode is now **a cylindrical 360° panoram
 - Frame rate not measured on real hardware (this container has software rendering only).
 - The photoreal panoramas and fly-in videos were generated from the old renders. They still register geometrically, but the styling differs slightly at the crossfade, so regenerate them if wanted.
 
-**Tests:**
+**Published:** artifact version 4 (same link). **Tests:**
 - `tests/views.js`: before/after screenshots, in `checks/before-after.jpg`.
 - `tests/verify.js`: hotspots, drawing-check modal, reference render, kitchen colours, collisions, stairs up and down, console errors, and the top-down renders for the overlay.
 - `tests/cine.js`: photoreal mode end to end.
