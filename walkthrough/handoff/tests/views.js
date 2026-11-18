@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
 const path = require('path');
 const [OUT, TAG = 'after', Q = 'hd', ONLY = ''] = process.argv.slice(2);
 const THREE_DIR = path.join(process.cwd(), 'node_modules/three');
-const HIDE = '#top,#floors,#panel,#hot,#hint,#walkui,#joy,#panoUi,#btnPano,#cine,#snap,#ref,#toast,#hdBtn{display:none!important}';
+const HIDE = '#top,#floors,#panel,#hot,#hint,#walkui,#joy,#panoUi,#btnPano,#cine,#snap,#ref,#toast,#hdBtn,#mini,#tourbar{display:none!important}';
 (async () => {
   const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   const page = await (await b.newContext({ viewport: { width: 1344, height: 768 }, deviceScaleFactor: 1 })).newPage();
@@ -14,7 +14,7 @@ const HIDE = '#top,#floors,#panel,#hot,#hint,#walkui,#joy,#panoUi,#btnPano,#cine
   await page.route('https://cdn.jsdelivr.net/npm/three@0.169.0/**', r => r.fulfill({ path: path.join(THREE_DIR, r.request().url().split('three@0.169.0/')[1]), contentType: 'application/javascript' }));
   await page.route(/assets\/(fly-|pano-)/, r => r.fulfill({ status: 404, body: '' }));
   const t0 = Date.now();
-  await page.goto('http://127.0.0.1:8765/index.html');
+  await page.goto('http://127.0.0.1:8765/' + (process.env.PAGE || 'index.html'));
   await page.waitForFunction(() => window.__app && __app.mode === 'doll');
   console.log(TAG, 'loaded', ((Date.now() - t0) / 1000).toFixed(0) + 's');
   await page.evaluate(q => { if (__app.setQuality) __app.setQuality(q, true); }, Q);       // new page only: lock quality (no fps watchdog)
