@@ -114,7 +114,7 @@
   #mCanvas{display:block;cursor:pointer}
   /* guided tour bar */
   #tourbar{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:6;display:none;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);padding:10px 12px;backdrop-filter:blur(8px);width:min(460px,calc(100vw - 32px))}
-  body.touring #tourbar{display:flex}body.touring #walkui{opacity:0!important;pointer-events:none}body.touring #toast{bottom:104px}
+  body.touring #tourbar{display:flex}body.touring #joy{display:none!important}body.touring #walkui{opacity:0!important;pointer-events:none}body.touring #toast{bottom:104px}
   #tourbar .tmid{flex:1;min-width:0}#tRoom{font-family:'Cormorant Garamond',serif;font-size:20px;line-height:1.1;margin:2px 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tprog{height:3px;background:rgba(255,255,255,.15)}.tprog i{display:block;height:100%;width:0;background:var(--gold)}
   #tPlay{min-width:72px}
@@ -135,7 +135,7 @@
   #chgList li::before{content:'';position:absolute;left:0;top:10px;width:6px;height:6px;background:var(--gold);border-radius:50%}
   #chgList.neutral li::before{background:var(--muted)}
   @media (max-width:760px){
-    #top{padding:10px 10px}.tops{gap:5px}#top .btn{padding:8px 8px;letter-spacing:.08em;font-size:10px}.brand{max-width:110px;line-height:1.25}
+    #top{padding:10px 10px}.tops{gap:5px}#top .btn{padding:8px 8px;letter-spacing:.08em;font-size:10px}.brand{max-width:120px;line-height:1.3;font-size:11px;letter-spacing:.16em}
     #mini{left:auto;right:10px;top:58px;bottom:auto;padding:8px}#mini:not(.big) #mSize{display:none}#mName{font-size:16px}#mini .mhead{margin-bottom:5px}
     #mini.big{left:auto;right:10px}#mini.big #mCanvas{margin:0 auto}
     body.mm #ref{right:auto;left:10px}
@@ -701,7 +701,7 @@ B(0, STAIR.x1-0.01, STAIR.x1+0.01, CH, FL[1], STAIR.zt, STAIR.zb, M.plaster, fal
   for (let i=1;i<=n;i++){
     const zf = STAIR.zb - go*(i-1), zr = zf - go;
     B(0, STAIR.x0, STAIR.x1, 0, rise*i-0.03, zr, zf, M.plaster);
-    B(0, STAIR.x0, STAIR.x1, rise*(i-1), rise*i-0.03, zf-0.012, zf, M.skirting, false);                 // painted riser face
+    B(0, STAIR.x0+0.002, STAIR.x1-0.002, rise*(i-1)+0.002, rise*i-0.031, zf-0.010, zf+0.003, M.skirting, false);                 // painted riser face
     RB(0, STAIR.x0, STAIR.x1+0.02, rise*i-0.032, rise*i, zr-0.02, zf+0.02, 0.006, M.joinery);           // oak tread with nosing
   }
   const yAt = z => FL[1]*(STAIR.zb - z)/(STAIR.zb-STAIR.zt);
