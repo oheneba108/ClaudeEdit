@@ -209,6 +209,63 @@ A single still can't pan, so photoreal mode is now **a cylindrical 360° panoram
 
 ---
 
+## 6d. Visual fidelity upgrade: the 3D model as an architectural-visualisation walkthrough (18 Nov)
+
+**Plan data is untouched:** walls, openings, room rects, stairs, floor levels, every furniture footprint and every collider. Builders fill the traced boxes. The overlay check (`checks/overlay-after.png`) and `tests/verify.js` confirm walls, stairs and collisions. three@0.169.0 from the same CDN. All textures are drawn in code (seeded, so every load is identical).
+
+**Lighting**
+- Neutral tone mapping, replacing ACES.
+- Per-room auto-exposure: `EXPO_ROOM` targets inside the house, 0.95 outdoors and in the dollhouse. Exposure, environment and hemisphere intensity ease as you move.
+- Procedural sky shader (gradient, fbm clouds, sun glow, HDR sun disc). It is both the visible background (a sphere that follows the camera) and `scene.environment` via PMREM.
+- Sun shadows: 4096 maps (2048 on phones), PCFSoft, frustum fitted to the house, terrace and garden. `shadowMap.autoUpdate = false`, re-rendered only when the first floor lifts, ceilings toggle, or on load.
+- **Baked AO + sky bounce**: a Web Worker (Blob URL; main-thread fallback) builds a BVH over about 165k triangles and casts 20 cosine-weighted rays per unique receiver vertex. Short rays give occlusion; escaping rays give sky light through windows, which is warmer and brighter near glazing. The result is written into vertex colours of the architecture, cabinets and wardrobes, and fades in (`uBake` uniform injected with `onBeforeCompile`). Walls, floors and ceilings are tessellated (0.2–0.3 m grid) so there are vertices to bake into. It took about 18 s in this software-rendered container; faster on a real CPU.
+- Fixtures: emissive downlight discs on a grid in every room ceiling, glowing lamp and pendant shades, and an LED strip under the kitchen shelf.
+
+**Post-processing** (desktop only; **HD on/off** button top right):
+- `EffectComposer` → GTAO (radius 0.4 m, half resolution, denoised; glass, sky and small light fittings excluded) → UnrealBloom (threshold = 2 / exposure) → OutputPass → vignette and film grain.
+- Watchdog: if HD drops below 30 fps for 2 s, it switches to fast mode and shows a toast.
+- Pixel ratio is capped at 1.75 (HD) and 1.2 (fast).
+- The planar floor reflection (optional) was **not** done.
+
+**Materials:**
+- Oak: 2048 plank texture with a seam normal map; MeshPhysical with clearcoat.
+- Brick: buff stretcher bond, 215 × 65 mm with 10 mm recessed joints and a normal map.
+- Also 600 mm floor tile, bath wall tile, sage splashback, quartz with veining, a fabric-weave normal shared by all upholstery, jute, paving, grass, a leaf texture, a leafy hedge normal map, joinery oak, door timber, and abstract art canvases.
+- World-space planar UVs on every textured surface (by face normal, divided by the texture's real size).
+
+**Detail:**
+- Skirting generated from the wall data on every interior face, clipped at the stair void.
+- Linings plus casings on both faces of every doorway.
+- Window boards inside, sills outside, glazing beads, thresholds.
+- Lever handles on both sides of every door leaf.
+- Stairs with nosings, painted risers, rounded handrails and newels.
+
+**Furniture builders** (`framed()` local frame):
+- **Sofa / armchair:** plinth, arms, per-seat cushions, leaning backs, angled pillows, legs.
+- **Bed:** channel-tufted or oak headboard, folded-back duvet, pillows, throw.
+- **Dining:** chairs with tapered legs, oval extruded table tops with bevels and pedestals.
+- **Kitchen:** carcass, toe kick, door and drawer fronts with bar pulls, inset sink, swan-neck tap, hob rings, oven housing.
+- **Bathroom:** lathe toilets and basins, hollow bath, screen and fittings.
+- **Storage:** shaker wardrobes.
+- **Decor:** books, vases, bowls, fruit, art, lamps.
+- **Plants and site:** leaf-cloud plants and trees (alpha-tested double-sided leaf quads), grass tufts, leafy hedges.
+- **Wall snapping:** `snapBox()` closes gaps of 3 cm or less to a wall face, logged in `__app.snaps`. With this drawing nothing needed moving (`[]`).
+
+**Performance:** everything is merged per (material, shadow casting, ceiling, bake): 1,148 meshes became 109. That gives 64–67 draw calls per view and about 115–135k triangles.
+
+**Not done or changed from the brief:**
+- No wall units in the kitchen, because the drawing has none. The LED strip went under the existing floating shelf instead.
+- No planar reflections.
+- Frame rate not measured on real hardware (this container has software rendering only).
+- The photoreal panoramas and fly-in videos were generated from the old renders. They still register geometrically, but the styling differs slightly at the crossfade, so regenerate them if wanted.
+
+**Tests:**
+- `tests/views.js`: before/after screenshots, in `checks/before-after.jpg`.
+- `tests/verify.js`: hotspots, drawing-check modal, reference render, kitchen colours, collisions, stairs up and down, console errors, and the top-down renders for the overlay.
+- `tests/cine.js`: photoreal mode end to end.
+
+---
+
 ## 7. Open items and next steps
 
 1. **Run the kitchen AI loop** (section 6), judge it, and if it works, roll it out to every room.
