@@ -89,7 +89,7 @@ const want = p => PART === 'all' || PART === p;
     ok('tour bar visible', await p.evaluate(() => getComputedStyle(document.querySelector('#tourbar')).display === 'flex'));
     // jump to the middle of the tour (upstairs, between landing and the primary bedroom) for the route screenshot
     await p.evaluate(() => { __app.tourPaused = true; });
-    const mid = await p.evaluate(() => { const t = __app.tour; __app.tourSeek(t.len * 0.44); __app.tourSim(0.1); return __app.tour; });
+    const mid = await p.evaluate(() => { const t = __app.tour; __app.tourPaused = false; __app.tourSeek(t.len * 0.42); __app.tourSim(1.6); __app.tourPaused = true; return __app.tour; });
     await frames(p, 3); await shot(p, 'tour-mid.png');
     ok('tour pauses', mid.paused === true);
     // run the whole tour (simulated time) and check rooms visited + no clipping
@@ -170,7 +170,7 @@ const want = p => PART === 'all' || PART === p;
       ['bed', 'primary', 'move the primary bed against the right-hand wall'],
       ['wall', 'kitchen', 'remove the wall between the kitchen and the hall'],
     ];
-    const views = { living: [3.55, 3.2, 0, 3.2, 0.1], dining: [3.25, 4.95, 0, 6.2, 3.6], bed2: [3.6, 5.6, 1, 1.2, 8.4], primary: [3.05, 3.0, 1, 5.6, 0.9], kitchen: [3.4, 5.7, 0, 1.6, 7.5] };
+    const views = { living: [4.6, 2.9, 0, 1.0, 1.4], dining: [3.25, 4.95, 0, 6.2, 3.6], bed2: [3.1, 8.0, 1, 0.5, 8.0], primary: [3.05, 3.0, 1, 5.6, 0.9], kitchen: [1.3, 8.2, 0, 4.6, 6.6] };
     const look = async room => { const v = views[room]; await p.evaluate(v => { __app.teleport(v[0], v[1], v[2], Math.atan2(-(v[3] - v[0]), -(v[4] - v[1]))); __app.view = { yaw: Math.atan2(-(v[3] - v[0]), -(v[4] - v[1])), pitch: -0.12 }; __app.sim(0.02); }, v); await frames(p, 2); };
     await enter(p, 'living');
     for (const [tag, room, req] of cases) {
@@ -182,11 +182,11 @@ const want = p => PART === 'all' || PART === p;
       await p.waitForFunction(() => __app.bake.done); await look(room);
       const res = await p.evaluate(() => ({ list: [...document.querySelectorAll('#chgList li')].map(l => l.textContent), err: document.querySelector('#chgErr').hidden ? '' : document.querySelector('#chgErr').textContent, toast: document.querySelector('#toast').textContent, hist: __app.history }));
       const after = await p.evaluate(() => JSON.stringify(__app.model));
-      await p.evaluate(() => document.querySelector('#panel').classList.add('hide'));
+      await p.evaluate(() => document.querySelector('#panel').classList.add('hide')); await p.waitForTimeout(700);
       await shot(p, `chg-${tag}-after.png`);
-      await p.evaluate(() => document.querySelector('#panel').classList.remove('hide')); await frames(p, 1);
+      await p.evaluate(() => document.querySelector('#panel').classList.remove('hide')); await p.waitForTimeout(700); await frames(p, 1);
       await p.screenshot({ path: `${OUT}/chg-${tag}-panel.png`, clip: { x: 1280 - 22 - 322, y: 72, width: 322, height: 700 } });
-      await p.evaluate(() => document.querySelector('#panel').classList.add('hide'));
+      await p.evaluate(() => document.querySelector('#panel').classList.add('hide')); await p.waitForTimeout(700);
       if (tag === 'wall') ok(`change "${req}" refused, nothing changed`, before === after && /can't remove that wall/.test(res.list[0] || '') && !res.err, JSON.stringify(res));
       else ok(`change "${req}" applied`, before !== after && res.list.length > 0 && !res.err && res.toast === res.list[0], JSON.stringify(res));
     }

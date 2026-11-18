@@ -109,7 +109,7 @@
   body.mm #mini{display:block}body.mm #roomtitle{display:none}body.pano #mini{display:none!important}
   #mini .mhead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;max-width:100%}
   #mName{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:23px;line-height:1.05;margin-top:3px}
-  #mSize{font-size:10.5px;color:var(--muted);margin-top:4px;letter-spacing:.03em;max-width:260px}
+  #mSize{font-size:10.5px;color:var(--muted);margin-top:4px;letter-spacing:.03em;line-height:1.45}
   #mBig{background:none;border:1px solid var(--line);color:var(--ink);width:26px;height:26px;cursor:pointer;font-size:13px;flex:none}#mBig:hover{border-color:var(--gold)}
   #mCanvas{display:block;cursor:pointer}
   /* guided tour bar */
@@ -137,11 +137,11 @@
   @media (max-width:760px){
     #top{padding:10px 10px}.tops{gap:5px}#top .btn{padding:8px 8px;letter-spacing:.08em;font-size:10px}.brand{max-width:110px;line-height:1.25}
     #mini{left:auto;right:10px;top:58px;bottom:auto;padding:8px}#mini:not(.big) #mSize{display:none}#mName{font-size:16px}#mini .mhead{margin-bottom:5px}
-    #mini.big{left:10px;right:10px}#mini.big #mCanvas{margin:0 auto}
+    #mini.big{left:auto;right:10px}#mini.big #mCanvas{margin:0 auto}
     body.mm #ref{right:auto;left:10px}
     #panel #chg{display:none}#panel:not(.compact) #chg{display:block}
   }
-  @media (min-width:761px){ body.mm #joy{left:auto;right:22px} }
+  @media (min-width:761px){ body.mm #joy{left:auto;right:22px} body.mm #walkui{padding-left:var(--mmw,260px)} }
   @media (max-width:760px){.moreBtn{display:inline}}
 </style>
 <script type="importmap">
@@ -2193,13 +2193,15 @@ const MM = { el:$('#mini'), cv:$('#mCanvas'), big:false, L:0, s:1, w:0, h:0, dpr
 const MMR = { x0:-0.45, x1:7.25, z0:-3.1, z1:9.45 };
 const MM_SKIP = new Set(['rug','pendant','lamp','floorLamp','art','plant','books','vase','bowl','fruitBowl','tiles','mirror','towelRail','wallShelf','wallShelves']);
 const isPhone = ()=> innerWidth < 760;
-function mmSize(){ const H = MM.big ? Math.max(260, Math.min(600, innerHeight - (isPhone() ? 170 : 150))) : (isPhone() ? 160 : 300), s = H/(MMR.z1-MMR.z0);
-  return { s, w:Math.round((MMR.x1-MMR.x0)*s), h:Math.round(H) }; }
+function mmSize(){ const H = MM.big ? Math.max(260, Math.min(600, innerHeight - (isPhone() ? 170 : 150))) : (isPhone() ? 160 : 300);
+  const s = Math.min(H/(MMR.z1-MMR.z0), (innerWidth - (isPhone() ? 44 : 90))/(MMR.x1-MMR.x0));
+  return { s, w:Math.round((MMR.x1-MMR.x0)*s), h:Math.round((MMR.z1-MMR.z0)*s) }; }
 const mpx = x=> (x-MMR.x0)*MM.s, mpz = z=> (z-MMR.z0)*MM.s;
 function mmFloor(){ if (mode === 'doll' || mode === 'fly2' || mode === 'intro') return viewL; if (P.level === 's') return P.y > FL[1]/2 ? 1 : 0; return P.level; }
 function mmBuildBg(){
   const { s, w, h } = mmSize(), dpr = Math.min(2, devicePixelRatio || 1), L = MM.L;
   Object.assign(MM, { s, w, h, dpr });
+  MM.el.style.width = (w + 24) + 'px'; document.documentElement.style.setProperty('--mmw', (w + 24 + 22 + 18) + 'px');
   MM.cv.width = Math.round(w*dpr); MM.cv.height = Math.round(h*dpr); MM.cv.style.width = w+'px'; MM.cv.style.height = h+'px';
   const bg = MM.bg || (MM.bg = document.createElement('canvas')); bg.width = MM.cv.width; bg.height = MM.cv.height;
   const g = bg.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,h);
@@ -2283,7 +2285,7 @@ function mmDraw(){
   g.strokeStyle = 'rgba(243,239,231,.9)'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(bx0, by-4); g.lineTo(bx0, by); g.lineTo(bx1, by); g.lineTo(bx1, by-4); g.moveTo((bx0+bx1)/2, by); g.lineTo((bx0+bx1)/2, by-2.5); g.stroke();
   g.fillStyle = 'rgba(243,239,231,.9)'; g.font = "600 9px Inter, sans-serif"; g.textAlign = 'center'; g.textBaseline = 'bottom'; g.fillText('3 m', (bx0+bx1)/2, by-4);
 }
-function mmToggleBig(){ MM.big = !MM.big; MM.el.classList.toggle('big', MM.big); $('#mBig').textContent = MM.big ? '⤡' : '⤢'; $('#mBig').title = MM.big ? 'Smaller map (M)' : 'Enlarge map (M)'; MM.dirty = true; mmDraw(); }
+function mmToggleBig(){ MM.big = !MM.big; MM.el.classList.toggle('big', MM.big); document.body.classList.toggle('mmbig', MM.big); $('#mBig').textContent = MM.big ? '⤡' : '⤢'; $('#mBig').title = MM.big ? 'Smaller map (M)' : 'Enlarge map (M)'; MM.dirty = true; mmDraw(); }
 $('#mBig').onclick = e=>{ e.stopPropagation(); mmToggleBig(); };
 const mmPoint = e=>{ const r = MM.cv.getBoundingClientRect(); return { x:MMR.x0 + (e.clientX-r.left)/MM.s, z:MMR.z0 + (e.clientY-r.top)/MM.s }; };
 MM.cv.addEventListener('pointermove', e=>{ const p = mmPoint(e), r = roomAt(MM.L, p.x, p.z); const id = r ? r.id : null;
