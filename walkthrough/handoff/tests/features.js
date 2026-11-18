@@ -31,7 +31,7 @@ const want = p => PART === 'all' || PART === p;
   if (want('rooms')) {
     const p = await open(1280, 800);
     await enter(p, 'hall');
-    const rooms = await p.evaluate(() => __app.PLAN.rooms.map(r => ({ id: r.id, L: r.L, name: r.name, eye: r.eye })));
+    const rooms = await p.evaluate(() => __app.PLAN.rooms.map(r => ({ id: r.id, L: r.L, name: r.name, eye: [(r.rect[0] + r.rect[2]) / 2, (r.rect[1] + r.rect[3]) / 2] })));   // the centre of each room's main rectangle (some preset viewpoints look in from a doorway)
     for (const r of rooms) {
       await p.evaluate(r => { __app.teleport(r.eye[0], r.eye[1], r.L, 0); __app.sim(0.05); }, r);
       await frames(p, 2);
