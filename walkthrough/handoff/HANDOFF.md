@@ -266,6 +266,52 @@ A single still can't pan, so photoreal mode is now **a cylindrical 360° panoram
 
 ---
 
+## 6e. Editable model, minimap, guided tour, HD toggle, "Change something" (18 Nov, later session)
+
+**Editable model (section 8 of `site/index.html`).** Furniture, decor and finishes are one JSON document, `ORIGINAL_MODEL`:
+`{ units, levels, walls, doorLeaves, rooms, stairs, finishes, furniture }`. Each furniture entry is
+`{ id, type, level, room, x, z, w, d, h?, facing N|S|E|W, color?, material?, ...type-specific }`, where x/z is the centre of the
+footprint and `facing` is where its front points (N = garden, -z). There is one builder per type in `BUILDERS`. `finishes` holds
+wall paint, ceiling, floors per room, kitchen cabinets (the sage/charcoal/oak switch writes here), brick, roof and window frames.
+- Walls, ceilings, stairs and site are built and merged once (`archMerged`, `archColliders`).
+- `rebuild(model)` disposes the previous floors, downlights and furniture, builds them again, merges them per material and re-bakes AO in the worker. Stale bakes are dropped by generation.
+- Before/after check: `checks/model-before-after.jpg`. At most 3.6 % of pixels differ.
+- The one intended change is the living-room slider. It is now drawn with the right pane slid open behind the left, so you can walk out to the terrace.
+- Ground-floor walking now covers the whole garden plot. Trees and the front hedge have colliders.
+
+**Minimap** (bottom-left 300 px; on phones, top-right 160 px).
+- Drawn from the plan and the model: rooms, walls at true thickness, glazing in blue, and footprints of the larger furniture.
+- The background is cached in an offscreen canvas, keyed by floor, size and model version. The overlay redraws only when its state key changes.
+- The current room is tinted orange. Hover shows "Go to" with the room's size.
+- Click walks you there: nearest clear point in the room, then turn to face the room centre. M or ⤢ enlarges the map and adds room names.
+
+**Routes and the tour.**
+- A 0.1 m occupancy grid per floor, made with `hitBoxR` (R + 5 cm clearance). A* links the floors through the stairs.
+- Each doorway crossing keeps three A* points: before, through and after. The rest is string-pulled into a centripetal CatmullRom at eye height.
+- Route samples are checked against the colliders. Any hit adds the A* points around it, then the route is checked again.
+- Tour: hall → living → dining → kitchen → WC → landing → primary → bath → bed 2 → terrace. Moves at 1.25 m/s with a lagged turn, slight sway and a 2.4 s hold at each stop.
+- The tour button and T start it; Space pauses. Any drag, click or key ends it.
+- `ROOM_GRAPH` lists doorways, the slider, open-plan boundaries and the stairs.
+
+**HD.**
+- Defaults: on for desktops with 6 or more cores, off on touch devices.
+- HD on: GTAO, bloom, vignette and grain, a 4096 shadow map and pixel ratio up to 1.75.
+- Fast mode: plain render, a 2048 shadow map and pixel ratio up to 1.2.
+- Automatic fallback, once: if HD averages over 42 ms per frame across 90 frames after the bake, the page switches to fast mode. It never switches after the user has chosen.
+
+**Change something** (side panel; the Change button opens it in walk mode).
+- Calls Claude through the artifact `sample` capability: `claude.use('sample')`, published with `capabilities:{sample:{images:true}}`.
+- The prompt is the agreed wording plus the compact model (about 30 KB).
+- Before applying a reply, the page strips code fences, parses the JSON and takes out `changes`. It rejects the reply if any of these changed: walls, doorLeaves, rooms, stairs or levels. It also rejects unknown types and missing or non-finite numbers.
+- A new or moved item is clamped inside its room. An item that can't fit is dropped, with a note.
+- Undo history holds 30 changes. The model and its history are saved in localStorage (`house-walkthrough-model-v1`). Reset restores the original design.
+- Photoreal 360° and fly-ins only show while that floor's furniture and the finishes match the rendered originals.
+- Outside the Claude app or claude.ai, the panel shows "Open this page in the Claude app or on claude.ai to make changes".
+
+**Tests.**
+- `tests/features.js` checks the minimap in every room, outside and on the stairs, and the slider. It runs the full tour and checks for clipping. It also covers HD on/off, the change pipeline with mocked Claude replies (all five example requests, malformed replies, cancel, undo, reload, reset) and phone layout.
+- `tests/views.js` takes `PAGE=` to compare against an older copy of the page.
+
 ## 7. Open items and next steps
 
 1. **Run the kitchen AI loop** (section 6), judge it, and if it works, roll it out to every room.
