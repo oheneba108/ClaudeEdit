@@ -54,7 +54,7 @@ const want = p => PART === 'all' || PART === p;
     await p.evaluate(() => { __app.teleport(0.86, 7.75, 0, 0); __app.walk('KeyW', true); });
     await p.evaluate(() => __app.sim(5)); await p.evaluate(() => __app.walk('KeyW', false)); await frames(p, 2);
     mm = await p.evaluate(() => ({ ...__app.mm, P: __app.P }));
-    ok('minimap switches to the first floor after the stairs', mm.L === 1 && mm.P.level === 1, JSON.stringify(mm));
+    ok('minimap switches to the first floor after the stairs', mm.L === 1 && mm.P.level === 1 && mm.name === 'Landing', JSON.stringify(mm));
     // dot tracks the camera: the canvas pixel under the predicted dot position is orange
     await p.evaluate(() => { __app.teleport(4.6, 1.9, 1, 0.3); __app.sim(0.05); }); await frames(p, 3);
     const dot = await p.evaluate(() => { const c = document.querySelector('#mCanvas'), r = c.getBoundingClientRect(), s = __app.mm.h / 12.55;
