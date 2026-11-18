@@ -311,6 +311,12 @@ wall paint, ceiling, floors per room, kitchen cabinets (the sage/charcoal/oak sw
 **Tests.**
 - `tests/features.js` checks the minimap in every room, outside and on the stairs, and the slider. It runs the full tour and checks for clipping. It also covers HD on/off, the change pipeline with mocked Claude replies (all five example requests, malformed replies, cancel, undo, reload, reset) and phone layout.
 - `tests/views.js` takes `PAGE=` to compare against an older copy of the page.
+- **Results:** all 54 `features.js` checks pass at 1280×800 and 390×844, with no console errors. The full tour visits every room, reaches the WC (it looks in from the doorway) and never clips.
+- **Screenshots:** `checks/minimap-enlarged*.jpg`, `tour-midway.jpg`, `hd-on-vs-off.jpg`, `change-before-after.jpg` and `phone-390x844.jpg`.
+- **Not tested:** live Claude calls. Every change-panel test ran against mocked replies, because `claude.use('sample')` is null outside claude.ai.
+- Also fixed in this pass: flickering on the stair risers (the riser face was in the same plane as the step).
+
+**Published:** artifact version 5 (same link), declaring `capabilities:{sample:{images:true}}`.
 
 ## 7. Open items and next steps
 
